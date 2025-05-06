@@ -10,7 +10,7 @@ for i in $(cat /comfyui/custom_nodes.txt); do
     fi
     cd ${target}
     git pull
-    pip install -r requirements.txt
+    pip install -r requirements.txt || python3 install.py
 done
 
 for i in $(cat comfyui/custom_models.txt); do
