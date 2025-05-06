@@ -1,2 +1,3 @@
 https://huggingface.co/wfdsdfsdfwer/FL/resolve/main/sdvn7Nijistylexl_v1.safetensors
 https://huggingface.co/misri/zavychromaxl_v100/resolve/main/zavychromaxl_v100.safetensors
+https://huggingface.co/axssel/IPAdapter_ClipVision_models/resolve/main/CLIP-ViT-bigG-14-laion2B-39B-b160k.safetensors
