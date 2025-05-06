@@ -2,7 +2,7 @@
 
 
 for i in $(cat /comfyui/custom_nodes.txt); do
-    target=$(basename $i)   
+    target=$(basename $i | tr '[:upper:]' '[:lower:]')   
     
     cd /comfyui/custom_nodes 
     if ! [ -f $target ]; then
