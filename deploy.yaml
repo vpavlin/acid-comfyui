@@ -2,7 +2,7 @@
 version: "2.0"
 services:
   app:
-    image: zjuuu/comfyui:0.17
+    image: quay.io/vpavlin0/comfyui@sha256:842e32bcb95d6b5466bf1052eca40d3f868fede985924a37cb10c81a7093b9e0 #prep tag
     expose:
       - port: 8080
         as: 80
@@ -15,6 +15,14 @@ services:
       - "UPSCALEURLS="
       - "COMMANDLINE_ARGS=--listen 0.0.0.0 --port 8080"
       - "DELETE_EVERY_12HRS=true"
+    command:
+      - sh
+      - -c
+    args:
+      - >
+          /comfyui/prep.sh
+
+          exec /comfyui/entrypoint.sh
     
     params:
       storage:
@@ -37,9 +45,9 @@ profiles:
         storage:
           - size: 50Gi
             name: models
-              attributes:
-                persistent: true
-                class: beta3
+            attributes:
+              persistent: true
+              class: beta3
   placement:
     akash:
       pricing:
