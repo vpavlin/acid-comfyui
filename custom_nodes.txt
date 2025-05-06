@@ -17,3 +17,4 @@ https://github.com/cubiq/ComfyUI_IPAdapter_plus
 https://github.com/WASasquatch/PowerNoiseSuite
 https://github.com/rgthree/rgthree-comfy
 https://github.com/WASasquatch/was-node-suite-comfyui
+https://github.com/evanspearman/ComfyMath
