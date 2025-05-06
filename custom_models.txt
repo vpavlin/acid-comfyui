@@ -1,1 +1,2 @@
-https://huggingface.co/wfdsdfsdfwer/FL/raw/main/sdvn7Nijistylexl_v1.safetensors
+https://huggingface.co/wfdsdfsdfwer/FL/resolve/main/sdvn7Nijistylexl_v1.safetensors
+https://huggingface.co/misri/zavychromaxl_v100/resolve/main/zavychromaxl_v100.safetensors

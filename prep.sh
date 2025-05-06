@@ -18,6 +18,6 @@ for i in $(cat comfyui/custom_models.txt); do
     name=$(basename $i)
     if ! [ -f $name ]; then
         echo "==> Downloading $i"
-        curl -O $i
+        curl -O -L $i
     fi
 done
