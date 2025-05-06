@@ -13,10 +13,11 @@ for i in $(cat /comfyui/custom_nodes.txt); do
     pip install -r requirements.txt || python3 install.py
 done
 
-for i in $(cat comfyui/custom_models.txt); do
-    cd /comfyui/models
+mkdir -p /comfyui/models/checkpoints
+for i in $(cat /comfyui/custom_models.txt); do
+    cd /comfyui/models/checkpoints
     name=$(basename $i)
-    if ! [ -f $name ]; then
+    if ! [ -f ${name} ]; then
         echo "==> Downloading $i"
         curl -O -L $i
     fi

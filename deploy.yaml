@@ -2,7 +2,7 @@
 version: "2.0"
 services:
   app:
-    image: quay.io/vpavlin0/comfyui@sha256:842e32bcb95d6b5466bf1052eca40d3f868fede985924a37cb10c81a7093b9e0 #prep tag
+    image: quay.io/vpavlin0/comfyui@sha256:1f04b3c8d9258661c82562dc8f671c4d7fff70d0d93a9f2608d977d5b134786d #prep tag
     expose:
       - port: 8080
         as: 80
@@ -20,9 +20,9 @@ services:
       - -c
     args:
       - >
-          /comfyui/prep.sh
+          chown -R fcb:fcb /comfyui/models
 
-          exec /comfyui/entrypoint.sh
+          bash /comfyui/custom_entrypoint.sh
     
     params:
       storage:
