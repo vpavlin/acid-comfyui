@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-for i in `$(cat custom_nodes.txt)`; do
+for i in `$(cat /comfyui/custom_nodes.txt)`; do
     target=$(basename $i)   
     
     cd /comfyui/custom_nodes 
@@ -13,7 +13,7 @@ for i in `$(cat custom_nodes.txt)`; do
     pip install -r requirements.txt
 done
 
-for i in `$(cat custom_models.txt)`; do
+for i in `$(cat comfyui/custom_models.txt)`; do
     cd /comfyui/models
     name=$(basename $i)
     if ![ -f $name ]; then
