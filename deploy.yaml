@@ -1,0 +1,53 @@
+---
+version: "2.0"
+services:
+  app:
+    image: zjuuu/comfyui:0.17
+    expose:
+      - port: 8080
+        as: 80
+        to:
+          - global: true
+    env:
+      - "ENABLE_MANAGER=true"
+      - "VAEURLS="
+      - "MODELURLS="
+      - "UPSCALEURLS="
+      - "COMMANDLINE_ARGS=--listen 0.0.0.0 --port 8080"
+      - "DELETE_EVERY_12HRS=true"
+    
+    params:
+      storage:
+        models:
+          mount: /comfyui/models
+          readOnly: false
+profiles:
+  compute:
+    app:
+      resources:
+        cpu:
+          units: 6.0
+        memory:
+          size: 35Gi
+        gpu:
+          units: 1
+          attributes:
+            vendor:
+              nvidia:
+        storage:
+          - size: 50Gi
+            name: models
+              attributes:
+                persistent: true
+                class: beta3
+  placement:
+    akash:
+      pricing:
+        app:
+          denom: uakt
+          amount: 10000
+deployment:
+  app:
+    akash:
+      profile: app
+      count: 1
