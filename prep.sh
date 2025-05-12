@@ -10,7 +10,7 @@ for i in $(cat /comfyui/custom_nodes.txt); do
     fi
     cd ${target}
     git pull
-    pip install -r requirements.txt || python3 install.py
+    pip install -r requirements.txt || python3 install.py || true
 done
 
 #mkdir -p /comfyui/models/checkpoints

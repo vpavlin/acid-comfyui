@@ -1,8 +1,8 @@
 #!/bin/bash
 
 . /comfyui/.venv/bin/activate
-/comfyui/prep.sh
+bash /comfyui/prep.sh
 
-/comfyui/buildshim
+cd /comfyui && /comfyshim &
 
 exec /comfyui/entrypoint.sh

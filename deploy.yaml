@@ -2,7 +2,7 @@
 version: "2.0"
 services:
   app:
-    image: quay.io/vpavlin0/comfyui@sha256:92a73a02e855c8858388c71b298dda030970f5c154d47c441fc8bd7919fa62dd #prep tag
+    image: quay.io/vpavlin0/comfyui@sha256:e3325fbf851c7dbfbcb239022b01bb0f1929884f3bc2d87b6797be506df7684d #prep tag
     expose:
       - port: 8080
         as: 80
@@ -13,7 +13,7 @@ services:
       - "VAEURLS="
       - "MODELURLS="
       - "UPSCALEURLS="
-      - "COMMANDLINE_ARGS=--listen 0.0.0.0 --port 8080"
+      - "COMMANDLINE_ARGS=--listen 0.0.0.0 --port 9090"
       - "DELETE_EVERY_12HRS=true"
     command:
       - sh

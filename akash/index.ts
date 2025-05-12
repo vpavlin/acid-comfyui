@@ -317,7 +317,7 @@ async function queryLeaseStatus(lease: Lease, providerUri: string, certificate: 
   });
 }
 
-async function sendManifest(sdl: SDL, lease: Lease, wallet: DirectSecp256k1HdWallet, certificate: { cert: string; privateKey: string; publicKey: string }) {
+async function sendManifest(sdl: SDL, lease: Lease, wallet: DirectSecp256k1HdWallet, certificate: { cert: string; privateKey: string; publicKey: string }):Promise<string> {
   if (lease.id === undefined) {
     throw new Error("Lease ID is undefined");
   }
@@ -397,7 +397,7 @@ async function sendManifest(sdl: SDL, lease: Lease, wallet: DirectSecp256k1HdWal
       for (const [name, service] of Object.entries(status.services)) {
         if (service.uris) {
           console.log(`Service ${name} is available at:`, service.uris[0]);
-          return;
+          return service.uris[0];
         }
       }
     }
@@ -484,6 +484,30 @@ async function listProviders(deployment: Deployment, client: SigningStargateClie
     return providers;
   }
 
+async function checkDeployedURL(url: string) {
+    let result = ""
+    while(true) {
+        try {
+            const api = "http://" + url + "/api/v1/status"
+            console.log("Checking the ComfyUI Shim...", api)
+            const resp = await fetch(api)
+            if (resp.status != 200) {
+                await new Promise(resolve => setTimeout(resolve, 2000))
+            }
+
+            const data = await resp.json()
+            if (data.messages.length > 0) {
+                console.log("ComfyUI Shim is running at http://"+url)
+                return
+            }
+        } catch (e) {
+            //console.log(e)
+            console.log("Failed to fetch, retrying...")
+            await new Promise(resolve => setTimeout(resolve, 2000))
+        }
+    }
+}
+
 async function deploy() {
   const { wallet, client, certificate, sdl } = await loadPrerequisites();
 
@@ -500,7 +524,9 @@ async function deploy() {
 
 
   console.log("Sending manifest...");
-  return await sendManifest(sdl, lease, wallet, certificate);
+  const url =  await sendManifest(sdl, lease, wallet, certificate);
+
+  return await checkDeployedURL(url)
 }
 
 deploy().catch(console.error);
