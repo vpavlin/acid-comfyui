@@ -11,6 +11,6 @@ USER root
 ADD prep.sh custom_models.txt custom_nodes.txt custom_entrypoint.sh /comfyui/
 RUN bash /comfyui/prep.sh 
 ADD index.html /comfyui
-COPY --from=comfyshim /app/comfyshim /comfyui/comfyshim
+COPY --from=comfyshim /app/_build/comfyshim /comfyui/comfyshim
 
 ENTRYPOINT ["/bin/bash", "/comfyui/custom_entrypoint.sh"]
