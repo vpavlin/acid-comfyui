@@ -2,7 +2,7 @@ IMAGE=quay.io/vpavlin0/comfyui:prep
 
 all: build push
 
-build: buildapi
+build:
 	podman build -t $(IMAGE) .
 
 push:
