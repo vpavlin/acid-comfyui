@@ -127,9 +127,10 @@ func proxyToComfyUI(c *gin.Context) {
 
 	// Create a new request with the modified path
 	newRequest := c.Request.Clone(c.Request.Context())
-	newRequest.URL.Path = requestURI
+	newRequest.RequestURI = requestURI
 	newRequest.URL.Scheme = targetURL.Scheme
 	newRequest.URL.Host = targetURL.Host
+	newRequest.URL.RawQuery = c.Request.URL.RawQuery
 
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
 	proxy.ServeHTTP(c.Writer, newRequest)
