@@ -2,7 +2,7 @@
 version: "2.0"
 services:
   app:
-    image: quay.io/vpavlin0/comfyui@sha256:937db2088047ae68a356ba52492f82ce87461788446d306165e5b95504f255d5 #prep tag
+    image: quay.io/vpavlin0/comfyui@sha256:4e8c623085c4bf13d2a9daf1b4a8dd9436a22e10d5b0eb087f7a764a0c7d6d7b #prep tag
     expose:
       - port: 8080
         as: 80

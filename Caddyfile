@@ -1,0 +1,16 @@
+{
+    admin
+}
+
+:8080 {
+    # Handle /comfyui paths
+    handle_path /comfyui/* {
+        uri strip_prefix /comfyui
+        reverse_proxy localhost:9090
+    }
+
+    # Catch-all for other paths
+    handle_path /* {
+        reverse_proxy localhost:8081
+    }
+}

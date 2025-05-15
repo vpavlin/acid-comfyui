@@ -18,9 +18,15 @@
         </div>
         <div>
             <label for="folder-name" class="block text-lg">Folder Name:</label>
-            <input id="folder-name" type="text" class="w-full p-2 rounded-lg bg-black text-white border border-green-600 focus:border-green-400 transition" />
+            <select id="modelFolderSelect" type="text" class="w-full p-2 rounded-lg bg-black text-white border border-green-600 focus:border-green-400 transition">
+                <option disabled="disabled">Select a model folder</option>
+            </select>
         </div>
-        <button id="pull-mode" class="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition">Pull Mode</button>
+        <div>
+            <label for="filename" class="block text-lg">Filename (optional):</label>
+            <input id="filename" type="text" class="w-full p-2 rounded-lg bg-black text-white border border-green-600 focus:border-green-400 transition" />
+        </div>
+        <button id="pull-mode" class="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition">Pull Model</button>
         <div>
             <label for="repo-url" class="block text-lg">Repo URL:</label>
             <input id="repo-url" type="text" class="w-full p-2 rounded-lg bg-black text-white border border-green-600 focus:border-green-400 transition" />
@@ -41,12 +47,15 @@
         const pullNodesButton = document.getElementById('pull-nodes');
         const statusValue = document.getElementById('status-value');
         const comfyuiBtn = document.getElementById('comfyui-btn');
+        const select = document.getElementById('modelFolderSelect')
 
         let initialized = false
 
         pullModeButton.addEventListener('click', async () => {
             const modelUrl = modelUrlInput.value;
-            const folderName = folderNameInput.value;
+            const folderName = select.value;
+            console.log(modelUrl)
+            console.log(folderName)
             if (modelUrl && folderName) {
                 try {
                     const response = await fetch('/api/v1/pull_model', {
@@ -58,7 +67,7 @@
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                 } catch (error) {
-                    console.error('Failed to pull mode:', error);
+                    console.error('Failed to pull model:', error);
                 }
             }
         });
@@ -80,6 +89,34 @@
                 }
             }
         });
+
+        async function fetchModelFolders()  {
+            let fetchedModels = false
+
+            while(!fetchedModels) {
+                try {
+                    const response = await fetch('/comfyui/api/experiment/models', {headers: { 'Content-Type': 'application/json' }})
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch models: ${response.status}`)
+                    }
+
+                    const data = await response.json()
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.name; // Store the name as the value
+                        option.textContent = item.name; // Show the name as the text
+                        select.appendChild(option);
+                    });
+
+                    fetchedModels = true
+
+                } catch (e) {
+                    console.error(e)
+                    await new Promise(resolve => setTimeout(resolve, 1000))
+                }
+            }
+            
+        }
 
         async function checkStatus() {
             try {
@@ -106,6 +143,8 @@
 
         setInterval(checkStatus, 2000); // Check status every 5 seconds
         checkStatus(); // Initial check
+
+        fetchModelFolders();
     </script>
 </body>
 </html>

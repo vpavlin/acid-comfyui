@@ -1,14 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +19,7 @@ import (
 type PullModelRequest struct {
 	HuggingFaceURL string `json:"hugging_face_url"`
 	Destination    string `json:"destination"`
+	Filename       string `json:"filename"`
 }
 
 type PullNodesRequest struct {
@@ -48,7 +49,7 @@ func init() {
 	appStatus.LastNodesPull = time.Time{}
 }
 
-func pullModel(c *gin.Context) {
+func cloneModel(c *gin.Context) {
 	var req PullModelRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -89,6 +90,26 @@ func pullModel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Model pulled successfully"})
 }
 
+func pullModel(c *gin.Context) {
+	var req PullModelRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := downloadModel(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	appStatus.mu.Lock()
+	appStatus.LastModelPull = time.Now()
+	appStatus.mu.Unlock()
+
+	c.JSON(http.StatusOK, gin.H{"message": "Model pulled successfully"})
+}
+
 func pullNodes(c *gin.Context) {
 	var req PullNodesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -110,30 +131,6 @@ func pullNodes(c *gin.Context) {
 
 func serveIndex(c *gin.Context) {
 	c.File("index.html")
-}
-
-func proxyToComfyUI(c *gin.Context) {
-	targetURL, err := url.Parse("http://localhost:9090")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid target URL"})
-		return
-	}
-
-	// Remove the /comfyui prefix from the request path
-	requestURI := c.Request.RequestURI
-	if strings.HasPrefix(requestURI, "/comfyui") {
-		requestURI = strings.Replace(requestURI, "/comfyui", "", 1)
-	}
-
-	// Create a new request with the modified path
-	newRequest := c.Request.Clone(c.Request.Context())
-	newRequest.RequestURI = requestURI
-	newRequest.URL.Scheme = targetURL.Scheme
-	newRequest.URL.Host = targetURL.Host
-	newRequest.URL.RawQuery = c.Request.URL.RawQuery
-
-	proxy := httputil.NewSingleHostReverseProxy(targetURL)
-	proxy.ServeHTTP(c.Writer, newRequest)
 }
 
 func getAppStatus(c *gin.Context) {
@@ -188,6 +185,32 @@ func runInitialization() {
 
 	wg.Wait()
 
+	wg = sync.WaitGroup{}
+
+	data, err := os.ReadFile("custom_models.json")
+	if err != nil {
+		log.Fatalf("Error reading custom_models.json: %v", err)
+	}
+
+	models := make([]PullModelRequest, 0)
+	err = json.Unmarshal(data, &models)
+	if err != nil {
+		log.Fatalf("Error parsing custom_models.json: %v", err)
+	}
+
+	// parse custom_nodes.txt
+	for _, model := range models {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := downloadModel(model); err != nil {
+				log.Printf("Error downloading custom model: %v", err)
+			}
+		}()
+	}
+
+	wg.Wait()
+
 	appStatus.mu.Lock()
 	appStatus.State = "initialized"
 	appStatus.mu.Unlock()
@@ -202,12 +225,11 @@ func main() {
 	r.POST("/api/v1/pull_model", pullModel)
 	r.POST("/api/v1/pull_nodes", pullNodes)
 	r.GET("/api/v1/status", getAppStatus)
-	r.Any("/comfyui/*action", proxyToComfyUI)
 
 	go runInitialization()
 
-	log.Println("Starting server on :8080")
-	if err := r.Run(":8080"); err != nil {
+	log.Println("Starting server on :8081")
+	if err := r.Run(":8081"); err != nil {
 		log.Fatalf("Could not start server: %v", err)
 	}
 }
@@ -262,6 +284,52 @@ func copy(src, dst string, BUFFERSIZE int64) error {
 	return err
 }
 
+func downloadModel(modelInfo PullModelRequest) error {
+	destPath := filepath.Join("models", modelInfo.Destination)
+	err := os.MkdirAll(destPath, 0755)
+	if err != nil {
+		log.Fatalf("Error creating directory: %v", err)
+	}
+
+	// Determine filename to use
+	if modelInfo.Filename == "" {
+		// Extract filename from URL
+		urlSegments := strings.Split(modelInfo.HuggingFaceURL, "/")
+		filenameSegment := urlSegments[len(urlSegments)-1]
+		modelInfo.Filename = strings.Split(filenameSegment, "?")[0] // Remove query parameters
+	}
+
+	savePath := filepath.Join(destPath, modelInfo.Filename)
+
+	// Download the file
+	resp, err := http.Get(modelInfo.HuggingFaceURL)
+	if err != nil {
+		return fmt.Errorf("Download failed: %v", err)
+	}
+	defer resp.Body.Close()
+	appStatus.AddMessage(fmt.Sprintf("Successfully started download of %s", modelInfo.Filename))
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Server returned status %d", resp.StatusCode)
+	}
+
+	// Save to disk
+	outFile, err := os.Create(savePath)
+	if err != nil {
+		return fmt.Errorf("Error creating file: %v", err)
+	}
+	defer outFile.Close()
+
+	appStatus.AddMessage(fmt.Sprintf("Writing model %s", modelInfo.Filename))
+	_, err = io.Copy(outFile, resp.Body)
+	if err != nil {
+		return fmt.Errorf("Error writing file: %v", err)
+	}
+	appStatus.AddMessage(fmt.Sprintf("Successfully downloaded model %s", modelInfo.Filename))
+
+	return nil
+}
+
 func cloneCustomNode(repoUrl string) error {
 	appStatus.AddMessage(fmt.Sprintf("Pulling nodes from %s", repoUrl))
 	customNodesDir := "custom_nodes"
@@ -274,9 +342,24 @@ func cloneCustomNode(repoUrl string) error {
 		repoName = repoName[idx+1:]
 	}
 
-	cmd := exec.Command("git", "clone", repoUrl, fmt.Sprintf("%s/%s", customNodesDir, repoName))
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("Failed to pull nodes: %v", err)
+	folderName := fmt.Sprintf("%s/%s", customNodesDir, repoName)
+
+	exists, err := folderExists(folderName)
+	if err != nil {
+		return fmt.Errorf("Failed to check if folder %s exists: %v", folderName, err)
+	}
+
+	if exists {
+		cmd := exec.Command("git", "pull")
+		cmd.Dir = folderName
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("Failed to pull nodes: %v", err)
+		}
+	} else {
+		cmd := exec.Command("git", "clone", repoUrl, folderName)
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("Failed to clone nodes: %v", err)
+		}
 	}
 
 	appStatus.AddMessage(fmt.Sprintf("Running install of nodes from %s", repoName))
@@ -294,4 +377,15 @@ func cloneCustomNode(repoUrl string) error {
 
 	appStatus.AddMessage(fmt.Sprintf("Nodes %s pulled successfully", repoName))
 	return nil
+}
+
+func folderExists(path string) (bool, error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil // Folder does not exist
+		}
+		return false, err // Error occurred (e.g., permission denied)
+	}
+	return fileInfo.IsDir(), nil // Returns true if it's a directory
 }

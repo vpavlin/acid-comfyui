@@ -1,8 +1,10 @@
 #!/bin/bash
 
 . /comfyui/.venv/bin/activate
-bash /comfyui/prep.sh
+#bash /comfyui/prep.sh
 
 cd /comfyui && ./comfyshim &
+cd /comfyui && caddy start
 
-exec /comfyui/entrypoint.sh
+/comfyui/entrypoint.sh
+sleep 10000

@@ -1,0 +1,42 @@
+[
+    {
+        "hugging_face_url": "https://huggingface.co/laion/CLIP-ViT-H-14-laion2B-s32B-b79K/resolve/main/open_clip_model.safetensors",
+        "destination": "clip_vision",
+        "filename": "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"
+    },
+    {
+        "hugging_face_url": "https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/resolve/main/open_clip_model.safetensors",
+        "destination": "clip_vision",
+        "filename": "CLIP-ViT-bigG-14-laion2B-39B-b160k.safetensors"
+    },
+    {
+        "hugging_face_url": "https://huggingface.co/Phips/4xNomos8kDAT/resolve/main/4xNomos8kDAT.safetensors",
+        "destination": "upscale_models",
+        "filename": ""
+    },
+    {
+        "hugging_face_url": "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Siax_200k.pth",
+        "destination": "upscale_models",
+        "filename": ""
+    },
+    {
+        "hugging_face_url": "https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter-plus_sdxl_vit-h.safetensors",
+        "destination": "ipadapter",
+        "filename": ""
+    },
+    {
+        "hugging_face_url": "https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter-plus-face_sdxl_vit-h.safetensors",
+        "destination": "ipadapter",
+        "filename": ""
+    },
+    {
+        "hugging_face_url": "https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter_sdxl.safetensors",
+        "destination": "ipadapter",
+        "filename": ""
+    },
+    {
+        "hugging_face_url": "https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter_sdxl_vit-h.safetensors",
+        "destination": "ipadapter",
+        "filename": ""
+    }
+]
