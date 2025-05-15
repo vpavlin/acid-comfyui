@@ -38,5 +38,16 @@
         "hugging_face_url": "https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter_sdxl_vit-h.safetensors",
         "destination": "ipadapter",
         "filename": ""
+    },
+    {
+        "hugging_face_url": "https://huggingface.co/misri/zavychromaxl_v100/resolve/main/zavychromaxl_v100.safetensors",
+        "destination": "checkpoints",
+        "filename": ""
+    },
+    {
+        "hugging_face_url": "https://huggingface.co/wfdsdfsdfwer/FL/resolve/main/sdvn7Nijistylexl_v1.safetensors",
+        "destination": "checkpoints",
+        "filename": ""
     }
+
 ]
