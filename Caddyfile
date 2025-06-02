@@ -3,14 +3,17 @@
 }
 
 :8080 {
-    # Handle /comfyui paths
-    handle_path /comfyui/* {
-        uri strip_prefix /comfyui
+    handle_path /shim* {
+        uri strip_prefix /shim
+        reverse_proxy localhost:8081
+    }
+ 
+    handle_path /* {
+        request_body {
+            max_size 100MB
+        }
         reverse_proxy localhost:9090
     }
 
-    # Catch-all for other paths
-    handle_path /* {
-        reverse_proxy localhost:8081
-    }
+
 }

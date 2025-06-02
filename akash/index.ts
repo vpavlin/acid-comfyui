@@ -488,7 +488,7 @@ async function checkDeployedURL(url: string) {
     let result = ""
     while(true) {
         try {
-            const api = "http://" + url + "/api/v1/status"
+            const api = "http://" + url + "/shim/api/v1/status"
             console.log("Checking the ComfyUI Shim...", api)
             const resp = await fetch(api)
             if (resp.status != 200) {
@@ -497,7 +497,7 @@ async function checkDeployedURL(url: string) {
 
             const data = await resp.json()
             if (data.messages.length > 0) {
-                console.log("ComfyUI Shim is running at http://"+url)
+                console.log("ComfyUI Shim is running at http://"+url+"/shim")
                 return
             }
         } catch (e) {

@@ -1,3 +1,4 @@
+https://github.com/ltdrdata/ComfyUI-Manager
 https://github.com/martijnat/comfyui-previewlatent
 https://github.com/cubiq/ComfyUI_IPAdapter_plus
 https://github.com/ltdrdata/ComfyUI-Impact-Pack
@@ -9,3 +10,5 @@ https://github.com/evanspearman/ComfyMath
 https://github.com/jamesWalker55/comfyui-various
 https://github.com/WASasquatch/PowerNoiseSuite
 https://github.com/martijnat/comfyui-previewlatent
+https://github.com/WASasquatch/was-node-suite-comfyui
+https://github.com/kijai/ComfyUI-KJNodes

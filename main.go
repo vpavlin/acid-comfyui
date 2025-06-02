@@ -43,6 +43,7 @@ func (as *AppStatus) AddMessage(message string) {
 
 var appStatus = &AppStatus{State: "uninitialized"}
 var startTime = time.Now()
+var mainCmd *exec.Cmd
 
 func init() {
 	appStatus.LastModelPull = time.Time{}
@@ -174,13 +175,13 @@ func runInitialization() {
 			continue
 		}
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if err := cloneCustomNode(line); err != nil {
-				log.Printf("Error cloning custom node: %v", err)
-			}
-		}()
+		//wg.Add(1)
+		//go func() {
+		//	defer wg.Done()
+		if err := cloneCustomNode(line); err != nil {
+			log.Printf("Error cloning custom node: %v", err)
+		}
+		//}()
 	}
 
 	wg.Wait()
@@ -216,6 +217,17 @@ func runInitialization() {
 	appStatus.mu.Unlock()
 	appStatus.AddMessage("Initialization Finished!")
 
+	log.Println("Starting ComfyUI")
+	appStatus.AddMessage("Starting ComfyUI")
+
+	cmd := exec.Command("/comfyui/entrypoint.sh")
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	if err := cmd.Start(); err != nil {
+		log.Fatalf("Failed to star ComfyUI: %v", err)
+	}
+
+	mainCmd = cmd
 }
 
 func main() {
@@ -227,6 +239,11 @@ func main() {
 	r.GET("/api/v1/status", getAppStatus)
 
 	go runInitialization()
+	defer func() {
+		if mainCmd != nil {
+			mainCmd.Wait()
+		}
+	}()
 
 	log.Println("Starting server on :8081")
 	if err := r.Run(":8081"); err != nil {
@@ -301,6 +318,11 @@ func downloadModel(modelInfo PullModelRequest) error {
 
 	savePath := filepath.Join(destPath, modelInfo.Filename)
 
+	if _, err := os.Stat(savePath); err == nil {
+		appStatus.AddMessage(fmt.Sprintf("Model %s already present", modelInfo.Filename))
+		return nil
+	}
+
 	// Download the file
 	resp, err := http.Get(modelInfo.HuggingFaceURL)
 	if err != nil {
@@ -365,10 +387,14 @@ func cloneCustomNode(repoUrl string) error {
 	appStatus.AddMessage(fmt.Sprintf("Running install of nodes from %s", repoName))
 
 	cmdPip := exec.Command("pip", "install", "-r", fmt.Sprintf("%s/%s/requirements.txt", customNodesDir, repoName))
+	cmdPip.Stderr = os.Stderr
+	cmdPip.Stdout = os.Stdout
 	log.Println(cmdPip.Args)
 	if err := cmdPip.Run(); err != nil {
 		log.Println(err)
 		cmdInstall := exec.Command("python3", "install.py")
+		cmdInstall.Stderr = os.Stderr
+		cmdInstall.Stdout = os.Stdout
 		cmdInstall.Dir = fmt.Sprintf("%s/%s", customNodesDir, repoName)
 		if err := cmdInstall.Run(); err != nil {
 			return fmt.Errorf("Failed to install requirements: %v", err)
